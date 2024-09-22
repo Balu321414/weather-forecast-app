@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import WeatherCard from './components/WeatherCard';
 import ForecastCard from './components/ForecastCard';
 import SearchBox from './components/SearchBox';
@@ -12,12 +12,8 @@ const App = () => {
   const [forecastData, setForecastData] = useState(null);
   const [unit, setUnit] = useState('metric');
 
-  useEffect(() => {
-    fetchWeatherData(city);
-    fetchForecastData(city);
-  }, [city, unit]);
 
-  const fetchWeatherData = async (city) => {
+  const fetchWeatherData = useCallback(async (city) => {
     try {
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=${unit}&appid=${API_KEY}`
@@ -31,9 +27,9 @@ const App = () => {
     } catch (error) {
       alert('Failed to fetch weather data. Please try again.');
     }
-  };
+  }, [unit]); 
 
-  const fetchForecastData = async (city) => {
+  const fetchForecastData = useCallback(async (city) => {
     try {
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=${unit}&appid=${API_KEY}`
@@ -47,7 +43,12 @@ const App = () => {
     } catch (error) {
       alert('Failed to fetch forecast data. Please try again.');
     }
-  };
+  }, [unit]); 
+
+  useEffect(() => {
+    fetchWeatherData(city);
+    fetchForecastData(city);
+  }, [city, unit, fetchWeatherData, fetchForecastData]);  
 
   const toggleUnit = () => {
     setUnit(unit === 'metric' ? 'imperial' : 'metric');
@@ -63,8 +64,8 @@ const App = () => {
       </button>
       <div className="forecast-container">
         {forecastData && forecastData.list
-          .filter((_, index) => index % 8 === 0) // filter to get one forecast per day
-          .slice(0, 5) // get the first 5 days
+          .filter((_, index) => index % 8 === 0) 
+          .slice(0, 5) 
           .map((item, index) => (
             <ForecastCard
               key={index}
