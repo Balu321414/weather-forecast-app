@@ -1,25 +1,81 @@
-import logo from './logo.svg';
+
+import React, { useState, useEffect } from 'react';
+import WeatherCard from './components/WeatherCard';
+import ForecastCard from './components/ForecastCard';
+import SearchBox from './components/SearchBox';
 import './App.css';
 
-function App() {
+const API_KEY = "5c88de32cc8cea4da78e4be1627d9196";
+
+const App = () => {
+  const [city, setCity] = useState('New York');
+  const [weatherData, setWeatherData] = useState(null);
+  const [forecastData, setForecastData] = useState(null);
+  const [unit, setUnit] = useState('metric');
+
+  useEffect(() => {
+    fetchWeatherData(city);
+    fetchForecastData(city);
+  }, [city, unit]);
+
+  const fetchWeatherData = async (city) => {
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=${unit}&appid=${API_KEY}`
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setWeatherData(data);
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      alert('Failed to fetch weather data. Please try again.');
+    }
+  };
+
+  const fetchForecastData = async (city) => {
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=${unit}&appid=${API_KEY}`
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setForecastData(data);
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      alert('Failed to fetch forecast data. Please try again.');
+    }
+  };
+
+  const toggleUnit = () => {
+    setUnit(unit === 'metric' ? 'imperial' : 'metric');
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <h1>Weather Forecast</h1>
+      <SearchBox setCity={setCity} />
+      {weatherData && <WeatherCard weatherData={weatherData} unit={unit} />}
+      <button onClick={toggleUnit}>
+        Toggle to {unit === 'metric' ? 'Fahrenheit' : 'Celsius'}
+      </button>
+      <div className="forecast-container">
+        {forecastData && forecastData.list.slice(0, 5).map((item, index) => (
+          <ForecastCard
+            key={index}
+            day={new Date(item.dt_txt).toLocaleDateString('en-US', { weekday: 'long' })}
+            tempHigh={item.main.temp_max}
+            tempLow={item.main.temp_min}
+            icon={item.weather[0].icon}
+            unit={unit}
+          />
+        ))}
+      </div>
     </div>
   );
-}
+};
 
 export default App;
