@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import WeatherCard from './components/WeatherCard';
 import ForecastCard from './components/ForecastCard';
@@ -63,16 +62,19 @@ const App = () => {
         Toggle to {unit === 'metric' ? 'Fahrenheit' : 'Celsius'}
       </button>
       <div className="forecast-container">
-        {forecastData && forecastData.list.slice(0, 5).map((item, index) => (
-          <ForecastCard
-            key={index}
-            day={new Date(item.dt_txt).toLocaleDateString('en-US', { weekday: 'long' })}
-            tempHigh={item.main.temp_max}
-            tempLow={item.main.temp_min}
-            icon={item.weather[0].icon}
-            unit={unit}
-          />
-        ))}
+        {forecastData && forecastData.list
+          .filter((_, index) => index % 8 === 0) // filter to get one forecast per day
+          .slice(0, 5) // get the first 5 days
+          .map((item, index) => (
+            <ForecastCard
+              key={index}
+              day={new Date(item.dt_txt).toLocaleDateString('en-US', { weekday: 'long' })}
+              tempHigh={item.main.temp_max}
+              tempLow={item.main.temp_min}
+              icon={`https://openweathermap.org/img/wn/${item.weather[0].icon}.png`}
+              unit={unit}
+            />
+          ))}
       </div>
     </div>
   );
